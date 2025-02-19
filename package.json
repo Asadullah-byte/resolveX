@@ -1,0 +1,19 @@
+{
+  "name": "resolvex-code",
+  "version": "1.0.0",
+  "description": "resolveX is a AI powered log analysis and anomalies detection software providing a hiring Hub to hire Skilled professionals to resolve issues.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Asadullah-byte/resolveX.git"
+  },
+  "author": "Asadullah <129300889+Asadullah-byte@users.noreply.github.com> (https://asadcodes.me), Zain Arshad <158200687+zain2552@users.noreply.github.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Asadullah-byte/resolveX/issues"
+  },
+  "homepage": "https://github.com/Asadullah-byte/resolveX#readme"
+}
