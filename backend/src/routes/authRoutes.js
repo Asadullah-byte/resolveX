@@ -20,7 +20,7 @@ router.post("/github", githubOAuth);
 router.get("/login", login);
 
 //Logout Route for email
-router.get("/logout", logout);
+router.post("/logout", logout);
 
 //Verify email
 router.post("/verify-email", verifyEmail);
