@@ -1,13 +1,12 @@
-import react from 'react'
-
 import './App.css'
+import GoogleAuth from './components/GoogleAuth'
 
 function App() {
 
 
   return (
     <>
-      
+      <GoogleAuth/>
     </>
   )
 }
