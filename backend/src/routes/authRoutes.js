@@ -11,7 +11,7 @@ import { githubOAuth } from "../controllers/githubAuth.js";
 const router = Router();
 
 //Signup route for email
-router.post("/signup", signup);
+router.post("/signup", signup );
 
 router.post("/google", googleOAuth);
 router.post("/github", githubOAuth);

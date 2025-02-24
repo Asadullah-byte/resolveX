@@ -146,10 +146,10 @@ export const verifyEmail = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  res.send("login");
+ 
 };
 
 export const logout = async (req, res) => {
-  res.clearCookie("token").send("Logged out");
+  res.clearCookie("jwt");
   res.status(200).json({success:true, message:"Logged out successfully"});  
 };
