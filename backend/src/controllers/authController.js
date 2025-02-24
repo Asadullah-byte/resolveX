@@ -146,7 +146,35 @@ export const verifyEmail = async (req, res) => {
 };
 
 export const login = async (req, res) => {
- 
+ const {email, password} = req.body;
+ try {
+
+  if(!email || !password){
+    throw new Error("All fields are required!");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if(!user){
+    return res.status(400).json({success:false, message:"User does not exist"});
+  } 
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+
+  if(!isPasswordValid){
+    return res.status(400).json({success:false, message:"Invalid credentials"});
+  }
+  user.lastLogin = new Date();
+  res.status(200).json({
+    success:true,
+    message: "logged in Succesfully",
+    user,
+  })
+ } catch (error) {
+  throw new Error({success:false, message:error.message});
+ }
 };
 
 export const logout = async (req, res) => {

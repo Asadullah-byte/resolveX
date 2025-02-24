@@ -17,7 +17,7 @@ router.post("/google", googleOAuth);
 router.post("/github", githubOAuth);
 
 //Login route for email
-router.get("/login", login);
+router.post("/login", login);
 
 //Logout Route for email
 router.post("/logout", logout);
