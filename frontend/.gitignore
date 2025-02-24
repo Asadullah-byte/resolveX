@@ -22,13 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Vite Output
-dist
-
-.eslintcache
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
