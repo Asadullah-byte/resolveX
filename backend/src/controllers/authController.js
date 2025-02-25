@@ -3,8 +3,13 @@ import { prisma } from "../../db/connectDB.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwt.js";
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";
-import { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/email.js";
-import crypto from 'crypto'
+import {
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+  sendWelcomeEmail,
+  sendResetSuccessEmail,
+} from "../mailtrap/email.js";
+import crypto from "crypto";
 
 //Sigup Logic for email
 export const signup = async (req, res) => {
@@ -208,14 +213,14 @@ export const forgotPassword = async (req, res) => {
 
     //Genereate reset token
     const resetToken = crypto.randomBytes(20).toString("hex");
-    const resetTokenExpiresAt = new Date( Date.now() + 1 * 60 * 60 * 1000); //1 hour duration
+    const resetTokenExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); //1 hour duration
 
     await prisma.user.update({
       where: { email },
-      data:{
-      resetPasswordToken: resetToken,
-      resetPasswordExpires: resetTokenExpiresAt,
-    }
+      data: {
+        resetPasswordToken: resetToken,
+        resetPasswordExpires: resetTokenExpiresAt,
+      },
     });
 
     await sendPasswordResetEmail(
@@ -225,10 +230,54 @@ export const forgotPassword = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Password reset link sent to your email"
+      message: "Password reset link sent to your email",
     });
   } catch (error) {
+    res.status(401).json({ success: false, messgae: error.message });
+  }
+};
 
-    res.status(401).json({success:false, messgae:error.message});
+//reset Password Logic
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const user = await prisma.user.findFirst({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: { gt: new Date() }, // Ensures token is not expired
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+    // Hash the new password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update user password and clear reset token fields
+    await prisma.user.update({
+      where: { id: user.id }, // Use unique field to update
+      data: {
+        password: hashedPassword,
+        resetPasswordToken: null, // Clear reset token
+        resetPasswordExpires: null, // Clear expiration time
+      },
+    });
+
+    await sendResetSuccessEmail(user.email);
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Password reset successful. You can now log in with your new password.",
+    });
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

@@ -4,7 +4,8 @@ import {
   logout,
   signup,
   verifyEmail,
-  forgotPassword
+  forgotPassword,
+  resetPassword
 } from "../controllers/authController.js";
 import { googleAuth } from "../controllers/googleAuth.js";
 import { githubOAuth } from "../controllers/githubAuth.js";
@@ -25,6 +26,11 @@ router.post("/logout", logout);
 
 //Verify email
 router.post("/verify-email", verifyEmail);
+
+//Forgot Password 
 router.post("/forgot-password", forgotPassword);
+
+//Reset email Password
+router.post("/reset-password/:token", resetPassword);
 
 export default router;
