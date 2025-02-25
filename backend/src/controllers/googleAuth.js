@@ -106,8 +106,7 @@ export const googleAuth = async (req, res) => {
       success: true,
       message: "User created successfully!",
       user, // ✅ Send 'user' properly
-      client: role === "Client" ? roleData : undefined, // Send client data if applicable
-      engineer: role === "Engineer" ? roleData : undefined, // Send engineer data if applicable
+      
     });
   } catch (error) {
     console.error("Google OAuth Error:", error);

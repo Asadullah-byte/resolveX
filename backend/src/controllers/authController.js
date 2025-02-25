@@ -3,7 +3,8 @@ import { prisma } from "../../db/connectDB.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwt.js";
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";
-import { sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/email.js";
+import { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/email.js";
+import crypto from 'crypto'
 
 //Sigup Logic for email
 export const signup = async (req, res) => {
@@ -136,7 +137,7 @@ export const verifyEmail = async (req, res) => {
         verificationTokenExpires: null, // ✅ Clear expiry date
       },
     });
-     await sendWelcomeEmail(user.email, user.fname);
+    await sendWelcomeEmail(user.email, user.fname);
     res
       .status(200)
       .json({ success: true, message: "Email Verified Successfully" });
@@ -145,45 +146,89 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
+//Login logic
 export const login = async (req, res) => {
- const {email, password} = req.body;
- try {
+  const { email, password } = req.body;
+  try {
+    if (!email || !password) {
+      throw new Error("All fields are required!");
+    }
 
-  if(!email || !password){
-    throw new Error("All fields are required!");
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    await prisma.user.update({
+      where: { email },
+      data: { lastLogin: new Date() },
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User does not exist" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials" });
+    }
+    user.lastLogin = new Date();
+    res.status(200).json({
+      success: true,
+      message: "logged in Succesfully",
+      user,
+    });
+  } catch (error) {
+    throw new Error({ success: false, message: error.message });
   }
-
-  const user = await prisma.user.findUnique({
-    where: { email },
-    
-  });
-
-  await prisma.user.update({
-    where: { email },
-    data: { lastLogin: new Date() },
-  });
-
-  if(!user){
-    return res.status(400).json({success:false, message:"User does not exist"});
-  } 
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-
-  if(!isPasswordValid){
-    return res.status(400).json({success:false, message:"Invalid credentials"});
-  }
-  user.lastLogin = new Date();
-  res.status(200).json({
-    success:true,
-    message: "logged in Succesfully",
-    user,
-  })
- } catch (error) {
-  throw new Error({success:false, message:error.message});
- }
 };
 
+//Logout from account logic
 export const logout = async (req, res) => {
   res.clearCookie("jwt");
-  res.status(200).json({success:true, message:"Logged out successfully"});  
+  res.status(200).json({ success: true, message: "Logged out successfully" });
+};
+
+//forgot password logic
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User does not exist" });
+    }
+
+    //Genereate reset token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetTokenExpiresAt = new Date( Date.now() + 1 * 60 * 60 * 1000); //1 hour duration
+
+    await prisma.user.update({
+      where: { email },
+      data:{
+      resetPasswordToken: resetToken,
+      resetPasswordExpires: resetTokenExpiresAt,
+    }
+    });
+
+    await sendPasswordResetEmail(
+      user.email,
+      `${process.env.CLIENT_URL}/reset-password/${resetToken}`
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset link sent to your email"
+    });
+  } catch (error) {
+
+    res.status(401).json({success:false, messgae:error.message});
+  }
 };
