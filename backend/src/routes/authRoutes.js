@@ -5,7 +5,7 @@ import {
   signup,
   verifyEmail,
 } from "../controllers/authController.js";
-import { googleOAuth } from "../controllers/googleAuth.js";
+import { googleAuth } from "../controllers/googleAuth.js";
 import { githubOAuth } from "../controllers/githubAuth.js";
 
 const router = Router();
@@ -13,7 +13,7 @@ const router = Router();
 //Signup route for email
 router.post("/signup", signup );
 
-router.post("/google", googleOAuth);
+router.post("/google", googleAuth);
 router.post("/github", githubOAuth);
 
 //Login route for email

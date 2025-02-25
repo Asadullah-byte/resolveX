@@ -155,6 +155,12 @@ export const login = async (req, res) => {
 
   const user = await prisma.user.findUnique({
     where: { email },
+    
+  });
+
+  await prisma.user.update({
+    where: { email },
+    data: { lastLogin: new Date() },
   });
 
   if(!user){
