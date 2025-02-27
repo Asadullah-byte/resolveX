@@ -5,10 +5,12 @@ import {
   signup,
   verifyEmail,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  checkAuth
 } from "../controllers/authController.js";
 import { googleAuth } from "../controllers/googleAuth.js";
 import { githubOAuth } from "../controllers/githubAuth.js";
+import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = Router();
 
@@ -32,5 +34,8 @@ router.post("/forgot-password", forgotPassword);
 
 //Reset email Password
 router.post("/reset-password/:token", resetPassword);
+
+//Verified User 
+router.get("/check-auth", verifyToken, checkAuth );
 
 export default router;

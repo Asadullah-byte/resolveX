@@ -281,3 +281,26 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+//checking if user is verified
+export const checkAuth = async (req, res) => {
+  try {
+    
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+    });
+    if (!user)
+      return res
+        .status(400)
+        .json({ succes: false, message: "User not found!!" });
+
+    res.status(200).json({
+      success: true,
+      user: {
+        user: { ...user, password: undefined },
+      },
+    });
+  } catch (error) {
+    res.status(400).json({success:false, message:error.message})
+  }
+};
