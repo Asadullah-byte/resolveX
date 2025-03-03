@@ -4,7 +4,11 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwt.js";
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";
 
-import { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail } from "../utils/email.js";
+import {
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+  sendWelcomeEmail,
+} from "../utils/email.js";
 import crypto from "crypto";
 
 //Sigup Logic for email
@@ -24,37 +28,42 @@ export const signup = async (req, res) => {
   console.log("Received signup request:", req.body);
   try {
     if (!fname || !lname || !email || !password) {
+      // validate for required fields are filled
       throw new Error("All fields are required!");
     }
     const userExist = await prisma.user.findUnique({
+      //find user by email as email is set to be unique for each
       where: { email },
     });
     if (userExist) {
+      //if user exists return a 400 error to notify user that that email already exists
       return res
         .status(400)
         .json({ success: false, message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10); // Hashing password using bcrypt
 
-    const verificationToken = generateVerificationToken();
+    const verificationToken = generateVerificationToken(); //9 digit token is generated using simple JS logic. look in [utils folder]
 
     const result = await prisma.$transaction(async (prisma) => {
+      // Inserting data using transcation to insert in dependent tables at same time. NOTE: [Highly not recommended bad practice.]
       // Step 1: Create User
       const user = await prisma.user.create({
+        ///Inserted in User table
         data: {
           fname,
           lname,
           email,
           password: hashedPassword,
           verificationToken,
-          verificationTokenExpires: new Date(Date.now() + 30 * 60 * 1000),
+          verificationTokenExpires: new Date(Date.now() + 30 * 60 * 1000), //Token Valid for 30-minutes
           provider: "LOCAL",
           role,
         },
       });
 
-      let roleData;
+      let roleData; //local variabel to differentiate user based on role. To inserted in related table
 
       // Step 2: Conditionally Create Client or Engineer
       if (role === "Client") {
@@ -92,16 +101,16 @@ export const signup = async (req, res) => {
         .json({ success: false, message: "User creation failed" });
     }
 
-    const token = generateToken(res, user);
+    const token = generateToken(res, user); //Generating JWT token Valid for 7 days login period
 
     await sendVerificationEmail(user.email, verificationToken);
 
     return res.status(201).json({
       success: true,
       message: "User created successfully!",
-      user, // ✅ Send 'user' properly
-      client: role === "Client" ? roleData : undefined, // Send client data if applicable
-      engineer: role === "Engineer" ? roleData : undefined, // Send engineer data if applicable
+      user,
+      client: role === "Client" ? roleData : undefined, // Sending client data based on user selection
+      engineer: role === "Engineer" ? roleData : undefined, // Sending engineer data based on user selection
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -117,7 +126,7 @@ export const verifyEmail = async (req, res) => {
     const user = await prisma.user.findFirst({
       where: {
         verificationToken: code,
-        verificationTokenExpires: { gt: new Date() }, 
+        verificationTokenExpires: { gt: new Date() }, //Sets expire date
       },
     });
 
@@ -161,7 +170,7 @@ export const login = async (req, res) => {
 
     await prisma.user.update({
       where: { email },
-      data: { lastLogin: new Date() },
+      data: { lastLogin: new Date() }, //update user login date to current date / time
     });
 
     if (!user) {
@@ -170,7 +179,7 @@ export const login = async (req, res) => {
         .json({ success: false, message: "User does not exist" });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password); //decrypt user password and compare
 
     if (!isPasswordValid) {
       return res
@@ -190,7 +199,7 @@ export const login = async (req, res) => {
 
 //Logout from account logic
 export const logout = async (req, res) => {
-  res.clearCookie("jwt");
+  res.clearCookie("jwt"); //Clears JWT 7d cookie
   res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
@@ -220,6 +229,7 @@ export const forgotPassword = async (req, res) => {
     });
 
     await sendPasswordResetEmail(
+      //sending user email for reset password
       user.email,
       `${process.env.CLIENT_URL}/reset-password/${resetToken}`
     );
@@ -281,7 +291,6 @@ export const resetPassword = async (req, res) => {
 //checking if user is verified
 export const checkAuth = async (req, res) => {
   try {
-    
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
     });
@@ -297,6 +306,6 @@ export const checkAuth = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(400).json({success:false, message:error.message})
+    res.status(400).json({ success: false, message: error.message });
   }
 };
