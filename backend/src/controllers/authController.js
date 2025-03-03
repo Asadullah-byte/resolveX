@@ -3,12 +3,8 @@ import { prisma } from "../../db/connectDB.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwt.js";
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";
-import {
-  sendPasswordResetEmail,
-  sendVerificationEmail,
-  sendWelcomeEmail,
-  sendResetSuccessEmail,
-} from "../mailtrap/email.js";
+
+import { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail } from "../utils/email.js";
 import crypto from "crypto";
 
 //Sigup Logic for email
@@ -117,15 +113,15 @@ export const verifyEmail = async (req, res) => {
   const { code } = req.body;
 
   try {
-    // 1️⃣ Find the user with the given verification code & check if token is not expired
+    //  Find the user with the given verification code & check if token is not expired
     const user = await prisma.user.findFirst({
       where: {
         verificationToken: code,
-        verificationTokenExpires: { gt: new Date() }, // ✅ Correct syntax
+        verificationTokenExpires: { gt: new Date() }, 
       },
     });
 
-    // 2️⃣ If user not found or token expired, return error
+    // If user not found or token expired, return error
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -133,13 +129,13 @@ export const verifyEmail = async (req, res) => {
       });
     }
 
-    // 3️⃣ Update the user to mark as verified and remove the verification token
+    // Update the user to mark as verified and remove the verification token
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        isVerfied: true, // ✅ Mark as verified
-        verificationToken: null, // ✅ Remove token
-        verificationTokenExpires: null, // ✅ Clear expiry date
+        isVerfied: true, //Mark as verified
+        verificationToken: null, // Remove token
+        verificationTokenExpires: null, //Clear expiry date
       },
     });
     await sendWelcomeEmail(user.email, user.fname);
@@ -269,7 +265,7 @@ export const resetPassword = async (req, res) => {
       },
     });
 
-    await sendResetSuccessEmail(user.email);
+    await sendPasswordResetEmail(user.email);
 
     return res.status(200).json({
       success: true,

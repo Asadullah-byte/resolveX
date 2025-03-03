@@ -6,6 +6,7 @@ import { connectDB } from "./db/connectDB.js";
 import cookieParser from "cookie-parser";
 
 
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +21,7 @@ app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
   next();
 });
+  
 
 app.use("/api/auth", authRoutes);
 

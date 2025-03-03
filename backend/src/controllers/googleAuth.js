@@ -3,7 +3,7 @@ import { OAuth2Client } from "google-auth-library";
 import { prisma } from "../../db/connectDB.js";
 import { generateToken } from "../utils/jwt.js";
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";
-import { sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/email.js";
+import { sendVerificationEmail, sendWelcomeEmail } from "../utils/email.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -93,12 +93,8 @@ export const googleAuth = async (req, res) => {
       const token = generateToken(res, user);
 
     await sendVerificationEmail(user.email, verificationToken);
-    
-      
   
     }
-    
-
     
     res.json({ success: true,  user });
 

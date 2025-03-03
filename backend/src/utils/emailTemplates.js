@@ -28,7 +28,7 @@ export const VERIFICATION_EMAIL_TEMPLATE = `
 </html>
 `;
 
- export const PASSWORD_RESET_SUCCESS_TEMPLATE = `
+export const PASSWORD_RESET_SUCCESS_TEMPLATE = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -94,4 +94,101 @@ export const PASSWORD_RESET_REQUEST_TEMPLATE = `
 </html>
 `;
 
+export const WELCOME_EMAIL_TEMPLATE = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome Email</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0;">
+    <table width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);">
+        
+        
+        <!-- Company Logo with Figma Link -->
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <img src="https://res.cloudinary.com/drsfnh7w7/image/upload/v1740983717/Logo_yu14xk.png" alt="Company Logo" width="
+512 " style="display: block; max-width: 100%; height: auto;">
+                </a>
+            </td>
+        </tr>
 
+
+        <!-- Welcome Message -->
+        <tr>
+            <td style="padding: 20px;">
+                <h2 style="color: #000000; margin-bottom: 10px;">Welcome, Ali!</h2>
+                <p style="color: #333333;">Thanks for choosing <strong>resolveX</strong>! We are happy to see you on board.</p>
+                <p>To get started, do this next step:</p>
+            </td>
+        </tr>
+
+        <!-- Next Step Button -->
+        <tr>
+            <td align="center" style="padding: 10px 20px;">
+                <a href="YOUR_LINK_HERE" style="background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; display: inline-block; font-size: 16px;">
+                    Next Step
+                </a>
+            </td>
+        </tr>
+
+        <!-- Resources Section -->
+        <tr>
+            <td style="padding: 20px;">
+                <p>If you need some help to get started, check out:</p>
+                
+                <!-- Get Started Guide -->
+                <table width="100%" style="margin-bottom: 10px;">
+                    <tr>
+                        <td style="background-color: #fdf2f2; padding: 10px; border-radius: 6px; display: flex; align-items: center;">
+                            <img src="PLACEHOLDER_IMAGE_URL" alt="Guide Icon" width="30" style="margin-right: 10px; max-width: 100%; height: auto;">
+                            <a href="YOUR_GET_STARTED_GUIDE_LINK" style="color: #000000; font-weight: bold; text-decoration: none;">Get Started Guide</a>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Onboarding Video -->
+                <table width="100%">
+                    <tr>
+                        <td style="background-color: #fdf2f2; padding: 10px; border-radius: 6px; display: flex; align-items: center;">
+                            <img src="PLACEHOLDER_IMAGE_URL" alt="Video Icon" width="30" style="margin-right: 10px; max-width: 100%; height: auto;">
+                            <a href="YOUR_ONBOARDING_VIDEO_LINK" style="color: #000000; font-weight: bold; text-decoration: none;">Onboarding Video</a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+            <td align="center" style="font-size: 12px; color: #666666; padding: 20px;">
+                <p>We hope you enjoy this journey as much as we enjoy creating it for you.</p>
+                <p>© resolveX • Lahore Cantt, Lahore • Lahore, 54810, Pakistan</p>
+                <a href="YOUR_UNSUBSCRIBE_LINK" style="color: #999999; text-decoration: none;">Unsubscribe</a>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Responsive Styles -->
+    <style>
+        @media only screen and (max-width: 600px) {
+            table {
+                width: 100% !important;
+            }
+            td {
+                padding: 15px !important;
+            }
+            h2 {
+                font-size: 20px !important;
+            }
+            a {
+                font-size: 14px !important;
+                padding: 10px 20px !important;
+            }
+        }
+    </style>
+</body>
+</html>
+
+`;

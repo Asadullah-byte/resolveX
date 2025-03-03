@@ -1,11 +1,14 @@
+import { WELCOME_EMAIL_TEMPLATE } from "./emailTemplates.js";
 import { PASSWORD_RESET_REQUEST_TEMPLATE, PASSWORD_RESET_SUCCESS_TEMPLATE, VERIFICATION_EMAIL_TEMPLATE } from "./emailTemplates.js";
-import { mailtrapClient, sender } from "./mailtrap.config.js";
+import { transporter,sender } from "./smtpConfig.js";
 
+
+//On Signup Should send Verification email
 export const sendVerificationEmail = async (email, verificationToken) => {
-  const recipient = [{ email }];
+  const recipient =  email ;
 
   try {
-    const response = await mailtrapClient.send({
+    const response = {
       from: sender,
       to: recipient,
       subject: " Verify your email",
@@ -14,46 +17,53 @@ export const sendVerificationEmail = async (email, verificationToken) => {
         verificationToken
       ),
       category: "Email Verification",
-    });
-    console.log("Email sent successfully", response);
+    };
+
+    const info = await transporter.sendMail(response);
+    console.log("Email sent successfully", info.response);
+    return true;
   } catch (error) {
     console.error(`Error sending verification`, error);
     throw new Error(`Error sending verification email:  ${error} `);
+
   }
 };
 
+
+//On verify account send welcome email
 export const sendWelcomeEmail = async (email, fname) => {
-  const recipient = [{ email }];
+  const recipient = email; 
   try {
-    await mailtrapClient.send({
+    const response= {
       from: sender,
       to: recipient,
-      template_uuid: "8dda9810-b816-4d23-bef3-2d83ca588ea9",
-      template_variables: {
-        company_info_name: "resolveX",
-        name: fname,
-        company_info_address: "Lahore Cantt, Lahore",
-        company_info_city: "Lahore",
-        company_info_zip_code: "54810",
-        company_info_country: "Pakistan",
-      },
-    });
+      subject: " Verify your email",
+      html: WELCOME_EMAIL_TEMPLATE,
+      category: "Welcome Email",
+    };
+    const info = await transporter.sendMail(response);
+    console.log("Email sent successfully", info.response);
+    return true;
   } catch (error) {
     throw new Error(`Error sending welcome email: ${error}`);
   }
 };
 
+
 export const  sendPasswordResetEmail = async (email, resetURL) => {
-  const recipient  = [{email}];
+  const recipient  = email;
 
   try {
-    const response = await mailtrapClient.send({
+    const response = {
       from: sender,
       to: recipient,
       subject: "Reset your Password",
       html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetURL), 
       category: "Password Reset"
-    })
+    };
+    const info = await transporter.sendMail(response);
+    console.log("Email sent successfully", info.response);
+
   } catch (error) {
     console.error("Error sending password reset email:", error);
 
@@ -63,16 +73,19 @@ export const  sendPasswordResetEmail = async (email, resetURL) => {
 
 export const sendResetSuccessEmail = async(email) => {
 
-  const recipient = [{email}];
+  const recipient = email;
   try {
-      const response = mailtrapClient.send({
+      const response ={
         from: sender,
         to:recipient,
         subject: "Password Reset Successful",
         html: PASSWORD_RESET_SUCCESS_TEMPLATE,
         category: "Password Reset"
 
-      })    
+      };
+      const info = await transporter.sendMail(response);
+      console.log("Email sent successfully", info.response);
+      
   } catch (error) {
     console.error("Error in reset Password", error);
   }
