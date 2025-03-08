@@ -41,7 +41,7 @@ model User {
   password                 String?   @default("")
   profilePic               String? 
   lastLogin                DateTime? @default(now())
-  isVerfied                Boolean   @default(false)
+  isVerified                Boolean   @default(false)
   resetPasswordToken       String?
   resetPasswordExpires     DateTime?
   verificationToken        String?
@@ -73,14 +73,15 @@ model Engineer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   // Basic Info
-  gender    Gender
-  dob       DateTime
+  gender    Gender?
+  dob       DateTime?
 
   // Contact
   phoneNo String?
   email   String? @unique
 
   // Relations
+  
   education Education[]
   career    Career?
 }
@@ -89,13 +90,13 @@ model Education {
   id         String     @id @default(uuid())
   engineerId String
   engineer   Engineer   @relation(fields: [engineerId], references: [id])
-  institute  String
-  type       DegreeType
+  institute  String?
+  type       DegreeType?
   major      String?
   degree     String?
   marks      Float?
   grade      String?
-  startYear  Int
+  startYear  Int?
   endYear    Int?
 }
 
@@ -103,7 +104,7 @@ model Career {
   id             String   @id @default(uuid())
   engineerId     String   @unique
   engineer       Engineer @relation(fields: [engineerId], references: [id])
-  field          String
+  field          String?
   specialization String?
   skills         String[]
   experience     Int?

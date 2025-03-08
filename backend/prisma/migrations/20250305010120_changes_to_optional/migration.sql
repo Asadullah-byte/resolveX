@@ -1,0 +1,11 @@
+-- AlterTable
+ALTER TABLE "Career" ALTER COLUMN "field" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "Education" ALTER COLUMN "institute" DROP NOT NULL,
+ALTER COLUMN "type" DROP NOT NULL,
+ALTER COLUMN "startYear" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "Engineer" ALTER COLUMN "gender" DROP NOT NULL,
+ALTER COLUMN "dob" DROP NOT NULL;
