@@ -10,7 +10,7 @@ import { useEffect } from "react";
 import Dashboard from "./pages/Dashboard.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
-import LoadingSpinner from "./components/LoadingSpinner.jsx";
+
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore();
@@ -37,13 +37,13 @@ const RedirectAuthenticatedUser = ({ children }) => {
 };
 
 function App() {
-  const { checkAuth, isCheckingAuth } = useAuthStore();
+  const { checkAuth } = useAuthStore();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  if (isCheckingAuth) return <LoadingSpinner />;
+
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-neutral-100 to-neutral-200 flex items-center justify-center relative overflow-hidden pt-20">
