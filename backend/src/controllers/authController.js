@@ -13,18 +13,8 @@ import crypto from "crypto";
 
 //Sigup Logic for email
 export const signup = async (req, res) => {
-  const {
-    fname,
-    lname,
-    email,
-    password,
-    provider,
-    role,
-    companyName,
-    address,
-    gender,
-    dob,
-  } = req.body; //Takes inputs necessary: [name,email,password], optional: [provider,role]
+  const { fname, lname, email, password, provider, role, companyName } =
+    req.body; //Takes inputs necessary: [name,email,password], optional: [provider,role]
   console.log("Received signup request:", req.body);
   try {
     if (!fname || !lname || !email || !password) {
@@ -67,25 +57,19 @@ export const signup = async (req, res) => {
 
       // Step 2: Conditionally Create Client or Engineer
       if (role === "Client") {
-        if (!companyName || !address) {
-          throw new Error("Company name and address are required for Clients!");
+        if (!companyName) {
+          throw new Error("Company name is required for Clients!");
         }
         roleData = await prisma.client.create({
           data: {
             userId: user.id,
             companyName,
-            address,
           },
         });
       } else if (role === "Engineer") {
-        if (!gender || !dob) {
-          throw new Error("Gender and DOB are required for Engineers!");
-        }
         roleData = await prisma.engineer.create({
           data: {
             userId: user.id,
-            gender,
-            dob: new Date(dob), // ✅ Convert to Date object
           },
         });
       }
@@ -101,7 +85,7 @@ export const signup = async (req, res) => {
         .json({ success: false, message: "User creation failed" });
     }
 
-    const token = generateToken(res, user); //Generating JWT token Valid for 7 days login period
+    generateToken(res, user); //Generating JWT token Valid for 7 days login period
 
     await sendVerificationEmail(user.email, verificationToken);
 
@@ -142,7 +126,7 @@ export const verifyEmail = async (req, res) => {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        isVerfied: true, //Mark as verified
+        isVerified: true, //Mark as verified
         verificationToken: null, // Remove token
         verificationTokenExpires: null, //Clear expiry date
       },
@@ -168,16 +152,18 @@ export const login = async (req, res) => {
       where: { email },
     });
 
-    await prisma.user.update({
-      where: { email },
-      data: { lastLogin: new Date() }, //update user login date to current date / time
-    });
-
     if (!user) {
       return res
         .status(400)
         .json({ success: false, message: "User does not exist" });
     }
+
+    generateToken(res, user);
+
+    await prisma.user.update({
+      where: { email },
+      data: { lastLogin: new Date() }, //update user login date to current date / time
+    });
 
     const isPasswordValid = await bcrypt.compare(password, user.password); //decrypt user password and compare
 
@@ -193,7 +179,8 @@ export const login = async (req, res) => {
       user,
     });
   } catch (error) {
-    throw new Error({ success: false, message: error.message });
+    console.error(error.message);
+    // throw new Error({ success: false, message: error.message });
   }
 };
 
@@ -298,6 +285,11 @@ export const checkAuth = async (req, res) => {
       return res
         .status(400)
         .json({ succes: false, message: "User not found!!" });
+    if (!user.isVerified) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Email not verified" });
+    }
 
     res.status(200).json({
       success: true,

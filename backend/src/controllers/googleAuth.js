@@ -80,7 +80,7 @@ export const googleAuth = async (req, res) => {
             data: {
               userId: user.id,
               gender,
-              dob: new Date(dob), // ✅ Convert to Date object
+              dob: new Date(dob), // Convert to Date object
             },
           });
         }
