@@ -1,5 +1,5 @@
 import axios from "axios";
-import { prisma } from "../../db/connectDB.js";
+import { prisma } from "../../../../db/connectDB.js";
 import { generateToken } from "../utils/jwt.js";
 
 // GitHub OAuth

@@ -2,7 +2,7 @@ import express from "express";
 import dotenv, { config } from "dotenv";
 import cors from "cors";
 import authRoutes from "./src/routes/authRoutes.js";
-import { connectDB } from "./db/connectDB.js";
+import { connectDB } from "../../db/connectDB.js";
 import cookieParser from "cookie-parser";
 
 dotenv.config();
@@ -21,6 +21,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/auth", authRoutes);
+
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

@@ -1,5 +1,5 @@
 import express from "express";
-import { prisma } from "../../db/connectDB.js";
+import { prisma } from "../../../../db/connectDB.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwt.js";
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";

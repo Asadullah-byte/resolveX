@@ -1,15 +1,15 @@
 // import FloatingShapes from './components/FloatingShapes.jsx'
 import Header from "./components/Header.jsx";
-import EmailVerification from "./pages/EmailVerificationPage.jsx";
-import LoginPage from "./pages/LoginPage.jsx";
-import SignUpPage from "./pages/SignUpPage.jsx";
+import EmailVerification from "./pages/auth/EmailVerificationPage.jsx";
+import LoginPage from "./pages/auth/LoginPage.jsx";
+import SignUpPage from "./pages/auth/SignUpPage.jsx";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/authStore.js";
 import { useEffect } from "react";
-import Dashboard from "./pages/Dashboard.jsx";
-import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
+import Dashboard from "./pages/client/Dashboard.jsx";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage.jsx";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.jsx";
 
 
 const ProtectedRoute = ({ children }) => {
@@ -92,6 +92,7 @@ function App() {
             }
           />
           {/* catch all routes */}
+          
         </Routes>
         <Toaster />
       </div>

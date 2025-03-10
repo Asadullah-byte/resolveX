@@ -10,7 +10,7 @@ import {
 } from "../controllers/authController.js";
 import { googleAuth } from "../controllers/googleAuth.js";
 import { githubOAuth } from "../controllers/githubAuth.js";
-import { verifyToken } from "../middleware/verifyToken.js";
+import { verifyToken } from "../../../common-middleware/verifyToken.js";
 
 const router = Router();
 
