@@ -31,7 +31,7 @@ const Dashboard = () => {
           {/* Drag and Drop File Upload */}
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed p-5 w-150 h-80 rounded-lg mt-2.5 mb-4 transition cursor-pointer flex flex-col items-center justify-center ${
+            className={`border-2 border-dashed p-5 w-150 \ rounded-lg mt-2.5 mb-4 transition cursor-pointer flex flex-col items-center justify-center ${
               isDragActive ? "border-blue-500 bg-gray-100" : "border-gray-400"
             }`}
           >
