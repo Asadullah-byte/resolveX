@@ -5,7 +5,7 @@ import upload from "../middleware/upload.js";
 
 const router = Router();
 
-router.post("/upload", upload.single("logFile"), uploadFile);
+router.post("/upload", upload.multiple("logFile"), uploadFile);
 //Verified User
 router.get("/check-auth", verifyToken, checkAuth);
 
