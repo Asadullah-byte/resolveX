@@ -27,7 +27,7 @@ const Dashboard = () => {
     try {
       await uploadFile(); // Assuming this updates `response`
       toast.success("File uploaded successfully!");
-    } catch (error) {
+    } catch(err) {
       toast.error("Upload failed. Please try again.");
     }
   };
