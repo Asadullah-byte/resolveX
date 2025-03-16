@@ -79,7 +79,7 @@ const UploadHistoryTable = () => {
                 <TableCell sx={{ textAlign: "center" }}>
                   {new Date(file.uploadTime).toLocaleString()}
                 </TableCell>
-                <TableCell sx={{ textAlign: "center" }}>
+                <TableCell sx={{ display:"flex", justifyContent:"center" }}>
                   <Avatar src={`https://i.pravatar.cc/40?img=${index + 1}`} />
                 </TableCell>
                 <TableCell sx={{ textAlign: "center" }}>
