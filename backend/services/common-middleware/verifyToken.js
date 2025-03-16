@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+
 const publicKey = fs.readFileSync(
   path.join(__dirname, "../auth-service/src/keys/public.pem"),
   "utf-8"
@@ -13,14 +14,14 @@ const publicKey = fs.readFileSync(
 
 
 export const verifyToken = (req, res, next) => {
-  const jwt = req.cookies.jwt;
-  if (!jwt)
+  const token = req.cookies.token;
+  if (!token)
     return res
       .status(401)
       .json({ success: false, message: "Unauthorized - no cookie issued" });
 
   try {
-    const decoded = JsonWebToken.verify(jwt,publicKey,{algorithms: ["RS256"]});
+    const decoded = JsonWebToken.verify(token,publicKey,{algorithms: ["RS256"]});
 
     if (!decoded) {
       return res

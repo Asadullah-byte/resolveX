@@ -1,7 +1,7 @@
-import  { useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Loader, Lock, Mail } from "lucide-react";
-import { Link, } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Input from "../../components/Input";
 import { useAuthStore } from "../../store/authStore";
 
@@ -9,15 +9,15 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-
   const { login, isLoading, error } = useAuthStore();
-
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    await login(email, password);
-
-
+    try {
+      await login(email, password);
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
   return (
     <motion.div
@@ -49,9 +49,12 @@ const LoginPage = () => {
           />
 
           <div className="flex items-center mb-6">
-          <Link to='/forgot-password' className='text-sm text-green-400 hover:underline'>
-							Forgot password?
-						</Link>
+            <Link
+              to="/forgot-password"
+              className="text-sm text-green-400 hover:underline"
+            >
+              Forgot password?
+            </Link>
           </div>
 
           {error && <p className="text-red-500 font-semibold mt-2">{error}</p>}
@@ -70,7 +73,7 @@ const LoginPage = () => {
           </motion.button>
         </form>
       </div>
-      
+
       <div className="px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center">
         <p className="text-sm text-gray-400">
           Don&apos;t have an account?{" "}

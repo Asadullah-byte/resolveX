@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -8,91 +8,135 @@ import {
   TableRow,
   Avatar,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import ErrorIcon from "@mui/icons-material/Error";
-import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-
-const files = [
-  {
-    name: "log_file_1.log",
-    status: "Completed",
-    icon: <CheckCircleIcon color="success" />,
-    action: "View",
-    uploader: "https://i.pravatar.cc/40?img=1",
-  },
-  {
-    name: "error_log_2.txt",
-    status: "Failed",
-    icon: <ErrorIcon color="error" />,
-    action: "Retry",
-    uploader: "https://i.pravatar.cc/40?img=2",
-  },
-  {
-    name: "system_log_3.log",
-    status: "Completed",
-    icon: <CheckCircleIcon color="success" />,
-    action: "View",
-    uploader: "https://i.pravatar.cc/40?img=3",
-  },
-  {
-    name: "debug_log_4.txt",
-    status: "In Progress",
-    icon: <HourglassEmptyIcon color="warning" />,
-    action: "Cancel",
-    uploader: "https://i.pravatar.cc/40?img=4",
-  },
-];
+import useClientStore from "../store/clientStore";
 
 const UploadHistoryTable = () => {
+  const { uploadedFiles, fetchUploadedFiles, loading, error } = useClientStore();
+  const [open, setOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileContent, setFileContent] = useState("");
+
+  useEffect(() => {
+    fetchUploadedFiles();
+  }, []);
+
+  const handleViewFile = async (file) => {
+    setSelectedFile(file);
+    setOpen(true);
+
+    if (file.name.endsWith(".txt") || file.name.endsWith(".json") || file.name.endsWith(".log")) {
+      try {
+        const response = await fetch(file.url);
+        const text = await response.text();
+        setFileContent(text);
+      } catch (error) {
+        setFileContent("Failed to load file content.");
+      }
+    } else {
+      setFileContent(null);
+    }
+  };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
   return (
-    <TableContainer sx={{ maxWidth:"82rem", marginX: "52px", marginTop:"30px", display: "flex", justifyContent: "center" ,alignItems: "center" ,borderRadius: "8px", border: "2px solid #DEE1E6", }}>
-      <Table >
-        <TableHead >
-          <TableRow >
-            <TableCell sx={{ padding: "10px" , borderBottom: "1px solid #DEE1E6", textAlign: "center"}}>
-              <b>File Name</b>
-            </TableCell>
-            <TableCell sx={{ padding: "10px",borderBottom: "1px solid #DEE1E6", textAlign: "center" }}>
-              <b>Status</b>
-            </TableCell>
-            <TableCell sx={{ padding: "10px",borderBottom: "1px solid #DEE1E6", textAlign: "center" }}>
-              <b>Notification</b>
-            </TableCell>
-            <TableCell sx={{ padding: "10px" ,borderBottom: "1px solid #DEE1E6", textAlign: "center"}}>
-              <b>Upload Time</b>
-            </TableCell>
-            <TableCell sx={{ padding: "10px" ,borderBottom: "1px solid #DEE1E6", textAlign: "center"}}>
-              <b>Uploader</b>
-            </TableCell>
-            <TableCell sx={{ padding: "10px" ,borderBottom: "1px solid #DEE1E6", textAlign: "center"}}>
-              <b>Actions</b>
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {files.map((file, index) => (
-            <TableRow key={index}>
-              <TableCell sx={{ padding: "10px" ,borderBottom: "none", textAlign: "center"}}>{file.name}</TableCell>
-              <TableCell sx={{ padding: "10px" ,borderBottom: "none", textAlign: "center"}}>
-                {file.icon} {file.status}
-              </TableCell>
-              <TableCell sx={{ padding: "10px" ,borderBottom: "none", textAlign: "center"}}>
-                <NotificationsNoneIcon />
-              </TableCell>
-              <TableCell sx={{ padding: "10px" ,borderBottom: "none", textAlign: "center"}}>⭐⭐⭐⭐⭐</TableCell>
-              <TableCell sx={{ padding: "10px" ,borderBottom: "none", textAlign: "center"}}>
-                <Avatar src={file.uploader} />
-              </TableCell>
-              <TableCell sx={{ padding: "10px" ,borderBottom: "none", textAlign: "center"}}>
-                <Button variant="contained" sx={{minWidth: "85px", maxHeight:"40px", borderRadius:"8px", backgroundColor:"#636AE8"}}>{file.action}</Button>
-              </TableCell>
+    <>
+      <TableContainer
+        sx={{
+          maxWidth: "82rem",
+          marginX: "52px",
+          marginTop: "30px",
+          borderRadius: "8px",
+          border: "2px solid #DEE1E6",
+          marginBottom: "20px",
+        }}
+      >
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ textAlign: "center" }}><b>File Name</b></TableCell>
+              <TableCell sx={{ textAlign: "center" }}><b>Status</b></TableCell>
+              <TableCell sx={{ textAlign: "center" }}><b>Upload Time</b></TableCell>
+              <TableCell sx={{ textAlign: "center" }}><b>Uploader</b></TableCell>
+              <TableCell sx={{ textAlign: "center" }}><b>Actions</b></TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {uploadedFiles.map((file, index) => (
+              <TableRow key={index}>
+                <TableCell sx={{ textAlign: "center" }}>{file.name}</TableCell>
+                <TableCell sx={{ textAlign: "center" }}>
+                  <CheckCircleIcon color="success" /> {file.status}
+                </TableCell>
+                <TableCell sx={{ textAlign: "center" }}>
+                  {new Date(file.uploadTime).toLocaleString()}
+                </TableCell>
+                <TableCell sx={{ textAlign: "center" }}>
+                  <Avatar src={`https://i.pravatar.cc/40?img=${index + 1}`} />
+                </TableCell>
+                <TableCell sx={{ textAlign: "center" }}>
+                  <Button
+                    variant="contained"
+                    sx={{
+                      minWidth: "85px",
+                      maxHeight: "40px",
+                      borderRadius: "8px",
+                      backgroundColor: "#636AE8",
+                    }}
+                    onClick={() => handleViewFile(file)}
+                  >
+                    View
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* File Preview Modal */}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>File Preview: {selectedFile?.name}</DialogTitle>
+        <DialogContent dividers>
+          {fileContent ? (
+            <Typography
+              component="pre"
+              sx={{
+                whiteSpace: "pre-wrap",
+                wordWrap: "break-word",
+                backgroundColor: "#f4f4f4",
+                padding: "10px",
+                borderRadius: "5px",
+              }}
+            >
+              {fileContent}
+            </Typography>
+          ) : (
+            <Typography>Cannot preview this file type. Please download it.</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)} color="secondary">Close</Button>
+          <Button
+            component="a"
+            href={selectedFile?.url}
+            download
+            color="primary"
+            variant="contained"
+          >
+            Download
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

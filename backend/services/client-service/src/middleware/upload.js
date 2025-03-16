@@ -28,6 +28,8 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ storage, fileFilter });
+// Configure Multer to accept multiple files (max 5)
+const upload = multer({ storage, fileFilter, limits: { files: 5 } });
+
 
 export default upload;

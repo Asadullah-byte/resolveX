@@ -1,8 +1,12 @@
 import express from "express";
 import { prisma } from "../../../../db/connectDB.js";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/jwt.js";
+import { generateTokens } from "../utils/jwt.js";
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";
+import jwt from "jsonwebtoken";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import {
   sendPasswordResetEmail,
@@ -85,7 +89,11 @@ export const signup = async (req, res) => {
         .json({ success: false, message: "User creation failed" });
     }
 
-    generateToken(res, user); //Generating JWT token Valid for 7 days login period
+    const { accessToken, refreshToken } = generateTokens(res, user); //Generating JWT token Valid for 7 days login period
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken },
+    });
 
     await sendVerificationEmail(user.email, verificationToken);
 
@@ -136,7 +144,8 @@ export const verifyEmail = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Email Verified Successfully" });
   } catch (error) {
-    throw new Error(`Error sending welcome email: ${error}`);
+    console.log("error in verifyEmail ", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -152,17 +161,17 @@ export const login = async (req, res) => {
       where: { email },
     });
 
-    if (!user) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res
         .status(400)
-        .json({ success: false, message: "User does not exist" });
+        .json({ success: false, message: "Invalid credentials" });
     }
 
-    generateToken(res, user);
+    const { accessToken, refreshToken } = generateTokens(res, user);
 
     await prisma.user.update({
-      where: { email },
-      data: { lastLogin: new Date() }, //update user login date to current date / time
+      where: { id: user.id },
+      data: { lastLogin: new Date(), refreshToken }, //update user login date to current date / time
     });
 
     const isPasswordValid = await bcrypt.compare(password, user.password); //decrypt user password and compare
@@ -180,13 +189,18 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error(error.message);
-    // throw new Error({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
 //Logout from account logic
 export const logout = async (req, res) => {
-  res.clearCookie("jwt"); //Clears JWT 7d cookie
+  await prisma.user.update({
+    where: { refreshToken: req.cookies.refreshToken },
+    data: { refreshToken: null },
+  });
+  res.clearCookie("token"); //Clears access Token cookie
+  res.clearCookie("refreshToken"); //Clears refresh Token cookie
   res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
@@ -272,6 +286,60 @@ export const resetPassword = async (req, res) => {
   } catch (error) {
     console.error("Reset Password Error:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const privateKey = fs.readFileSync(
+  path.join(__dirname, "../keys/private.pem"),
+  "utf-8"
+);
+const publicKey = fs.readFileSync(
+  path.join(__dirname, "../keys/public.pem"),
+  "utf-8"
+);
+
+export const refreshToken = async (req, res) => {
+  const { refreshToken } = req.cookies;
+  if (!refreshToken) {
+    return res.status(401).json({ message: "No refresh token provided" });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, publicKey);
+
+    // Check if the refresh token matches the one stored in DB
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId, refreshToken },
+    });
+
+    if (!user) {
+      return res
+        .status(403)
+        .json({ message: "Invalid or expired refresh token" });
+    }
+
+    // Generate a new Access Token
+    const accessToken = jwt.sign(
+      { userId: user.id, role: user.role },
+      privateKey,
+      { algorithm: "RS256", expiresIn: "7d" }
+    );
+
+    res.cookie("token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.json({ message: "Token refreshed", accessToken });
+  } catch (error) {
+    console.error("❌ Refresh Token Error:", error.message);
+    return res
+      .status(403)
+      .json({ message: "Invalid or expired refresh token" });
   }
 };
 

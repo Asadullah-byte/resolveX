@@ -39,9 +39,10 @@ model User {
   lname                    String?
   email                    String    @unique
   password                 String?   @default("")
-  profilePic               String? 
+  profilePic               String?
   lastLogin                DateTime? @default(now())
-  isVerified                Boolean   @default(false)
+  isVerified               Boolean   @default(false)
+  refreshToken             String?
   resetPasswordToken       String?
   resetPasswordExpires     DateTime?
   verificationToken        String?
@@ -67,11 +68,11 @@ model Client {
 }
 
 model Engineer {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(uuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   // Basic Info
   gender    Gender?
   dob       DateTime?
@@ -81,15 +82,15 @@ model Engineer {
   email   String? @unique
 
   // Relations
-  
+
   education Education[]
   career    Career?
 }
 
 model Education {
-  id         String     @id @default(uuid())
+  id         String      @id @default(uuid())
   engineerId String
-  engineer   Engineer   @relation(fields: [engineerId], references: [id])
+  engineer   Engineer    @relation(fields: [engineerId], references: [id])
   institute  String?
   type       DegreeType?
   major      String?

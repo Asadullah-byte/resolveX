@@ -1,7 +1,7 @@
 import axios from "axios";
 import { OAuth2Client } from "google-auth-library";
 import { prisma } from "../../../../db/connectDB.js";
-import { generateToken } from "../utils/jwt.js";
+import { generateTokens } from "../utils/jwt.js";
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";
 import { sendVerificationEmail, sendWelcomeEmail } from "../utils/email.js";
 import dotenv from "dotenv";

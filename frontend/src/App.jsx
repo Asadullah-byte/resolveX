@@ -11,11 +11,17 @@ import Dashboard from "./pages/client/Dashboard.jsx";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage.jsx";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.jsx";
 
-
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, isCheckingAuth, refreshToken } =
+    useAuthStore();
+
+  if (isCheckingAuth) {
+    return <div>Loading...</div>; // Or a proper loading spinner
+  }
 
   if (!isAuthenticated) {
+    console.log("Trying to refresh token...");
+    refreshToken();
     return <Navigate to="/login" replace />;
   }
 
@@ -42,7 +48,6 @@ function App() {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
-
 
   return (
     <>
@@ -92,7 +97,6 @@ function App() {
             }
           />
           {/* catch all routes */}
-          
         </Routes>
         <Toaster />
       </div>

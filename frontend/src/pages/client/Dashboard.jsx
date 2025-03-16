@@ -9,25 +9,52 @@ import UploadHistoryTable from "../../components/UploadHistoryTable.jsx";
 const Dashboard = () => {
   const { file, response, error, loading, setFile, uploadFile } =
     useClientStore();
-
+  const allowedFileTypes = [
+    "text/plain",
+    "application/json",
+    "application/log",
+  ];
   const handleDrop = useCallback(
     (acceptedFiles) => {
-      setFile(acceptedFiles[0]); // Assuming single file upload
+      const validFiles = acceptedFiles.filter((file) =>
+        allowedFileTypes.includes(file.type)
+      );
+
+      if (validFiles.length === 0) {
+        toast.error("Only .log, .txt, .json files are allowed.");
+        return;
+      }
+
+      if (validFiles.length > 5) {
+        toast.error("You can upload a maximum of 5 files.");
+        return;
+      }
+
+      setFile(validFiles);
     },
     [setFile]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: handleDrop,
-    accept: ".log,.txt,.json",
+    accept: {
+      "text/plain": [".txt"],
+      "application/json": [".json"],
+      "application/log": [".log"],
+    },
+    multiple: true,
   });
 
   const handleUpload = async (e) => {
     e.preventDefault();
+    if (!file || file.length === 0) {
+      toast.error("No file selected!");
+      return;
+    }
     try {
       await uploadFile(); // Assuming this updates `response`
       toast.success("File uploaded successfully!");
-    } catch(err) {
+    } catch (err) {
       toast.error("Upload failed. Please try again.");
     }
   };
@@ -56,9 +83,25 @@ const Dashboard = () => {
                 : "Drag & Drop files here or click to upload"}
             </p>
           </div>
-
-          {file && (
-            <p className="mt-2 text-gray-700">Selected File: {file.name}</p>
+          {file && file.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {file.map((f, index) => (
+                <div
+                  key={index}
+                  className="flex items-center bg-gray-200 rounded-full px-3 py-1"
+                >
+                  <span className="text-sm text-gray-700">{f.name}</span>
+                  <button
+                    className="ml-2 text-red-500 hover:text-red-700"
+                    onClick={() => {
+                      setFile(file.filter((_, i) => i !== index)); // Remove file
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
 
           <Button
@@ -76,7 +119,7 @@ const Dashboard = () => {
 
         <div>
           <h1 className="text-3xl font-semibold mt-8 ml-13 ">Upload History</h1>
-        <UploadHistoryTable />
+          <UploadHistoryTable />
         </div>
       </div>
     </div>

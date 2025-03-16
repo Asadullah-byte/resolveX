@@ -7,7 +7,7 @@ const API_URL = "http://localhost:3000/api/auth";
 axios.defaults.withCredentials = true;
 
 export const useAuthStore = create(
-  (set) => ({
+  persist((set, get) => ({
     user: null,
     isAuthenticated: false,
     error: null,
@@ -90,19 +90,43 @@ export const useAuthStore = create(
       set({ isCheckingAuth: true, error: null });
       try {
         const response = await axios.get(`${API_URL}/check-auth`);
-        if (response.data.user.isVerified === true && response.data.user) {
+        console.log("Auth Check Response:", response.data);
+        if (response.data.user.isVerified && response.data.user) {
           set({
             user: response.data.user,
             isAuthenticated: true,
-            isCheckingAuth: false,
+            // isCheckingAuth: false,
           });
+        } else {
+          set({ isAuthenticated: false });
         }
       } catch (error) {
+        console.log("Check Auth Failed:", error.response?.data || error);
         set({
-          error: error.message,
-          isCheckingAuth: false,
+          // isCheckingAuth: false,
           isAuthenticated: false,
         });
+        await get().refreshToken();
+      } finally {
+        set({ isCheckingAuth: false }); // Ensure loading state is updated
+      }
+    },
+    refreshToken: async () => {
+      try {
+        const response = await axios.post(`${API_URL}/refresh-token`);
+        console.log("Token Refreshed:", response.data);
+        set({ isAuthenticated: true });
+      } catch (error) {
+        console.log("Token Refresh Failed:", error.response?.data || error);
+        set({ isAuthenticated: false, user: null });
+      }
+    },
+    logout: async () => {
+      try {
+        await axios.post(`${API_URL}/logout`);
+        set({ user: null, isAuthenticated: false, error:null, isLoading:false });
+      } catch (error) {
+        console.log("Logout Error:", error.response?.data || error);
       }
     },
     forgotPassword: async (email) => {
@@ -137,5 +161,5 @@ export const useAuthStore = create(
         throw error;
       }
     },
-  })
+  }))
 );

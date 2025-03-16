@@ -2,9 +2,11 @@ import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "../assets/img/Logo.png";
 
+
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
 
   // Determine the button text and redirection based on the current path
   let buttonText, buttonAction;
@@ -17,7 +19,7 @@ const Header = () => {
     buttonAction = "/login";
   } else {
     buttonText = "Logout";
-    buttonAction = "/logout";
+    buttonAction = "/";
   }
 
   return (
@@ -33,7 +35,7 @@ const Header = () => {
       </Link>
 
       {/* Navigation Button */}
-      <Link to={buttonAction}>
+      <Link  onClick={buttonAction}>
         <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
           {buttonText}
         </button>

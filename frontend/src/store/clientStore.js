@@ -5,24 +5,24 @@ const API_URL = "http://localhost:3001/client";
 
 axios.defaults.withCredentials = true;
 
-
-
 const useClientStore = create((set) => ({
-  file: null,
+  file: [],
   response: null,
   error: null,
   loading: false,
+  uploadedFiles: [],
 
-  setFile: (file) => set({ file }),
+  setFile: (files) => set({ file: files }),
   setResponse: (response) => set({ response }),
   setError: (error) => set({ error }),
   setLoading: (loading) => set({ loading }),
 
   uploadFile: async () => {
-    const { file, setLoading, setResponse, setError } = useClientStore.getState();
+    const { file, setLoading, setResponse, setError,setFile } =
+      useClientStore.getState();
 
-    if (!file) {
-      setError("Please select a file first.");
+    if (!file || file.length === 0) {
+      setError("Please select at least one file.");
       return;
     }
 
@@ -31,22 +31,32 @@ const useClientStore = create((set) => ({
     setResponse(null);
 
     const formData = new FormData();
-    formData.append("logFile", file);
+    file.forEach((f) => formData.append("logFiles", f));
 
     try {
       const res = await axios.post(`${API_URL}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true, // Ensure cookies are sent if authentication is needed
+        withCredentials: true,
       });
 
       setResponse(res.data);
+      setFile([]); 
     } catch (err) {
-      setError("Error uploading file. Please try again.");
+      setError("Error uploading files. Please try again.");
     } finally {
       setLoading(false);
+    }
+  },
+
+  fetchUploadedFiles: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axios.get(`${API_URL}/files`); // Update with your backend URL
+      set({ uploadedFiles: response.data, loading: false });
+    } catch (err) {
+      set({ error: "Failed to fetch files", loading: false });
     }
   },
 }));
 
 export default useClientStore;
-

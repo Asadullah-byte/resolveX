@@ -6,11 +6,12 @@ import {
   verifyEmail,
   forgotPassword,
   resetPassword,
-  checkAuth
+  checkAuth,
+  refreshToken
 } from "../controllers/authController.js";
 import { googleAuth } from "../controllers/googleAuth.js";
 import { githubOAuth } from "../controllers/githubAuth.js";
-import { verifyToken } from "../../../common-middleware/verifyToken.js";
+import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = Router();
 
@@ -34,6 +35,9 @@ router.post("/forgot-password", forgotPassword);
 
 //Reset email Password
 router.post("/reset-password/:token", resetPassword);
+
+//refresh token Route
+router.post("/refresh-token", refreshToken)
 
 //Verified User 
 router.get("/check-auth", verifyToken, checkAuth );

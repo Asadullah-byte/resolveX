@@ -9,24 +9,34 @@ dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-
 const privatekey = fs.readFileSync(
   path.join(__dirname, "../keys/private.pem"),
   "utf-8"
 );
 
-export const generateToken = (res, user) => {
-  const token = jwt.sign(
+export const generateTokens = (res, user) => {
+  const accessToken = jwt.sign(
     { userId: user.id, email: user.email, role: user.role },
     privatekey,
     { algorithm: "RS256", expiresIn: "7d" }
   );
-  res.cookie("jwt", token, {
+
+  const refreshToken = jwt.sign({ userId: user.id }, privatekey, {
+    algorithm: "RS256",
+    expiresIn: "30d",
+  });
+  res.cookie("token", accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "Strict",
-    path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
-  return token;
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  });
+  return { accessToken, refreshToken };
 };
