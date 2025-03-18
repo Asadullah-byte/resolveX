@@ -3,6 +3,7 @@ import dotenv, { config } from "dotenv";
 import cors from "cors";
 import clientRoutes from "./src/routes/clientRoutes.js";
 import { connectDB } from "../../db/connectDB.js";
+import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 
 import cron from "node-cron";

@@ -18,7 +18,7 @@ const useClientStore = create((set) => ({
   setLoading: (loading) => set({ loading }),
 
   uploadFile: async () => {
-    const { file, setLoading, setResponse, setError,setFile } =
+    const { file, setLoading, setResponse, setError, setFile } =
       useClientStore.getState();
 
     if (!file || file.length === 0) {
@@ -41,6 +41,10 @@ const useClientStore = create((set) => ({
 
       setResponse(res.data);
       setFile([]); 
+      
+      // Fetch updated files list after upload
+      setTimeout(() => useClientStore.getState().fetchUploadedFiles(), 2000);
+      
     } catch (err) {
       setError("Error uploading files. Please try again.");
     } finally {
@@ -48,10 +52,11 @@ const useClientStore = create((set) => ({
     }
   },
 
+  // ✅ Corrected function: Fetch analyzed files & AI results
   fetchUploadedFiles: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.get(`${API_URL}/files`); // Update with your backend URL
+      const response = await axios.get(`${API_URL}/analyzed-files`); // ✅ Corrected API endpoint
       set({ uploadedFiles: response.data, loading: false });
     } catch (err) {
       set({ error: "Failed to fetch files", loading: false });

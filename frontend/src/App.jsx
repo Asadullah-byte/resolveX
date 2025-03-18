@@ -7,7 +7,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/authStore.js";
 import { useEffect } from "react";
-import Dashboard from "./pages/client/Dashboard.jsx";
+import UploadFiles from "./pages/client/UploadFiles.jsx";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage.jsx";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.jsx";
 
@@ -58,7 +58,7 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <UploadFiles />
               </ProtectedRoute>
             }
           />
