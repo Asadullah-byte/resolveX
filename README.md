@@ -1,5 +1,5 @@
 "# Upload File Feature: Upload file to AI and show history of Upload" 
-
+Added Groq-API for fiell processing and anomolies detection.
 ***
 
 ```
@@ -29,6 +29,18 @@ Before procceding check if following == Files& Folder== are included:
 
 - Updated src/components/UploadHsitoryTable.jsx, pages/client/UploadFiles.jsx, store/clientStore.js
 ***
+### Database/ORM:
+
+- Before runnig project sync your DB by running.
+
+- Make sure your backend is not running at any port.
+```
+cd backend
+npx prisma migrate dev
+npx prisma generate
+npx prisma studio
+``` 
+
 ## How to Run Project?
 
 Make sure to run run your DB's (e.g MongoDB, PostgreSQL on Docker)
