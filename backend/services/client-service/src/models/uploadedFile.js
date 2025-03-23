@@ -7,8 +7,8 @@ const uploadedFileSchema = new mongoose.Schema({
     type: String,
     enum: ["Pending", "Processing", "Analyzed"],
     required: true,
-  }, // ✅ Fixed
+  },
   groqResponse: { type: Object, default: null },
 });
 
-export const uploadedFile = mongoose.model("uploadedFile", uploadedFileSchema);
+export const UploadedFile = mongoose.model("uploadedFile", uploadedFileSchema);

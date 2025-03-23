@@ -46,13 +46,13 @@ const UploadHistoryTable = () => {
           marginX: "52px",
           marginTop: "30px",
           borderRadius: "8px",
-          border: "2px solid #DEE1E6",
+          border: "1.5px solid #DEE1E6",
           marginBottom: "20px",
         }}
       >
         <Table>
           <TableHead>
-            <TableRow>
+            <TableRow  >
               <TableCell sx={{ textAlign: "center" }}><b>File Name</b></TableCell>
               <TableCell sx={{ textAlign: "center" }}><b>Status</b></TableCell>
               <TableCell sx={{ textAlign: "center" }}><b>Upload Time</b></TableCell>

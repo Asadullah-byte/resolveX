@@ -5,10 +5,10 @@ import {
   uploadFile,
   uploadHistory,
   getAnalyzedFiles,
+  // getFileDetails,
 } from "../controllers/clientController.js";
 import upload from "../middleware/upload.js";
 // import { processNextFile } from "../controllers/clientController.js";
-
 
 const router = Router();
 
@@ -17,9 +17,10 @@ router.get("/check-auth", verifyToken, checkAuth);
 
 router.post("/upload", upload.array("logFiles", 5), uploadFile);
 
-
 router.get("/files", uploadHistory);
 
 router.get("/analyzed-files", getAnalyzedFiles);
+
+// router.get("/files/:encryptedFileId", getFileDetails);
 
 export default router;

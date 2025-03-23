@@ -7,7 +7,7 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 export const sendToGroq = async (fileContent) => {
   try {
-    console.log("📡 Sending extracted errors to Groq API...");
+    console.log("Sending extracted errors to Groq API...");
     console.log("Extracted Errors Preview:", fileContent.substring(0, 200));
 
     const chatCompletion = await groq.chat.completions.create({
@@ -62,26 +62,26 @@ If your response is not valid JSON, retry internally until it is correct. The fo
         }
       ],
       model: "llama-3.3-70b-versatile",
-      temperature: 0,  // 🔥 **Set to 0 for strict deterministic output**
-      max_completion_tokens: 4096,  // ✅ Increased max response size
+      temperature: 0,  //**Set to 0 for strict deterministic output**
+      max_completion_tokens: 4096,  //Increased max response size
       top_p: 1,
     });
 
     let responseText = chatCompletion.choices[0]?.message?.content?.trim() || "No response";
 
-    // ✅ More robust Markdown removal
+    //More robust Markdown removal
     responseText = responseText.replace(/^```json\s*/i, "").replace(/```$/g, "").trim();
 
-    // ✅ Ensure response is valid JSON
+    //Ensure response is valid JSON
     try {
       const jsonResponse = JSON.parse(responseText);
       return jsonResponse;
     } catch (error) {
-      console.error("❌ Groq response is not valid JSON:", responseText);
+      console.error("Groq response is not valid JSON:", responseText);
       return { error: "Invalid JSON response from AI", rawResponse: responseText };
     }
   } catch (error) {
-    console.error("❌ Groq API error:", error);
+    console.error("Groq API error:", error);
     return { error: "Failed to process file", details: error.message };
   }
 };

@@ -3,7 +3,6 @@ import dotenv, { config } from "dotenv";
 import cors from "cors";
 import clientRoutes from "./src/routes/clientRoutes.js";
 import { connectDB } from "../../db/connectDB.js";
-import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 
 import cron from "node-cron";
@@ -54,8 +53,9 @@ cron.schedule("0 0 * * *", () => {
   });
 });
 
-console.log("Cleanup job scheduled: Files older than 7 days will be deleted daily.");
-
+console.log(
+  "Cleanup job scheduled: Files older than 7 days will be deleted daily."
+);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
