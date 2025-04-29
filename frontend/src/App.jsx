@@ -10,13 +10,26 @@ import { useEffect } from "react";
 import UploadFiles from "./pages/client/UploadFiles.jsx";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage.jsx";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.jsx";
+import ErrorDashboard from "./pages/client/ErrorDashboard.jsx";
+import EngineerProfileSetup from "./pages/engineer/EngineerProfilePage.jsx";
+import ClientDashboard from "./pages/client/ClientDashboard.jsx";
+import AssignmentPage from "./pages/client/AssignmentPage.jsx";
+import EngineerAssignmentsPage from "./pages/engineer/EngineerAssignmentsPage.jsx";
+import AssignmentDetailPage from "./pages/shared/AssignmentDetailPage.jsx";
+import EngineerDashboard from "./pages/engineer/EngineerDashboard.jsx";
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, user, isCheckingAuth, refreshToken } =
-    useAuthStore();
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { isAuthenticated, user, isCheckingAuth, refreshToken } = useAuthStore();
+
+  console.log('Debug ProtectedRoute:', {
+    isAuthenticated,
+    userRole: user?.role,
+    allowedRoles,
+    isCheckingAuth
+  });
 
   if (isCheckingAuth) {
-    return <div>Loading...</div>; // Or a proper loading spinner
+    return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
@@ -29,6 +42,22 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/verify-email" replace />;
   }
 
+  // Check if roles are specified and user has permission
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    console.log('Role check failed:', {
+      userRole: user?.role,
+      allowedRoles,
+      includes: allowedRoles.includes(user?.role)
+    });
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  // Handle function children for conditional rendering
+  if (typeof children === 'function') {
+    console.log('Rendering function child with user:', user);
+    return children({ user });
+  }
+
   return children;
 };
 
@@ -36,7 +65,7 @@ const RedirectAuthenticatedUser = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore();
 
   if (isAuthenticated && user.isVerified) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/upload" replace />;
   }
 
   return children;
@@ -51,13 +80,22 @@ function App() {
 
   return (
     <>
+      <Header />
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-neutral-100 to-neutral-200 flex items-center justify-center relative overflow-hidden pt-18">
-        <Header />
         <Routes>
           <Route
             path="/"
             element={
               <ProtectedRoute>
+                {/* Empty element - ProtectedRoute will handle redirection */}
+                <div />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/upload"
+            element={
+              <ProtectedRoute allowedRoles={["Client"]}>
                 <UploadFiles />
               </ProtectedRoute>
             }
@@ -96,8 +134,67 @@ function App() {
               </RedirectAuthenticatedUser>
             }
           />
+
+          <Route path="/files/errors" element={<ErrorDashboard />} />
+          <Route path="/files/errors/:fileId" element={<ErrorDashboard />} />
+          <Route
+            path="/unauthorized"
+            element={<div>Unauthorized Access</div>}
+          />
+
+          <Route
+            path="/engineer/profile"
+            element={
+              <ProtectedRoute allowedRoles={["Engineer"]}>
+                <EngineerProfileSetup />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["Client", "Engineer"]}>
+                {({ user }) =>
+                  user.role === "Engineer" ? (
+                    <EngineerDashboard />
+                  ) : (
+                    <ClientDashboard />
+                  )
+                }
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/assigned"
+            element={
+              <ProtectedRoute allowedRoles={["Client"]}>
+                <AssignmentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/assignments"
+            element={
+              <ProtectedRoute allowedRoles={["Engineer"]}>
+                <EngineerAssignmentsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/assignment/:assignmentId"
+            element={
+              <ProtectedRoute allowedRoles={["Client", "Engineer"]}>
+                <AssignmentDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* catch all routes */}
         </Routes>
+
         <Toaster />
       </div>
     </>

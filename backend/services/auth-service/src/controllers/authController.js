@@ -73,8 +73,35 @@ export const signup = async (req, res) => {
       } else if (role === "Engineer") {
         roleData = await prisma.engineer.create({
           data: {
-            userId: user.id,
+            userId: user.id,  
+            // Initialize career with empty values
+            career: {
+              create: {
+                field: "",
+                specialization: "",
+                skills: [],
+                experience: 0,
+                bio: "",
+                intro: "",
+                socialAccounts: {} // Empty JSON object
+              }
+            },
+            // Initialize with one empty education entry
+            education: {
+              create: {
+                institute: "",
+                type: "BACHELORS", // Default value
+                major: "",
+                degree: "",
+                startYear: new Date().getFullYear(),
+                endYear: new Date().getFullYear()
+              }
+            }
           },
+          include: {
+            career: true,
+            education: true
+          }
         });
       }
 
@@ -186,6 +213,7 @@ export const login = async (req, res) => {
       success: true,
       message: "logged in Succesfully",
       user,
+      redirectTo: user.role === "Engineer" ? "/engineer/profile" : "/dashboard",
     });
   } catch (error) {
     console.error(error.message);

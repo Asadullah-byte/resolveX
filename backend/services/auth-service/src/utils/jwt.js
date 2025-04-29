@@ -14,6 +14,8 @@ const privatekey = fs.readFileSync(
   "utf-8"
 );
 
+
+
 export const generateTokens = (res, user) => {
   const accessToken = jwt.sign(
     { userId: user.id, email: user.email, role: user.role },
@@ -39,4 +41,12 @@ export const generateTokens = (res, user) => {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
   return { accessToken, refreshToken };
+};
+
+export const generateMagicLinkToken = (email) => {
+  return jwt.sign(
+    { email, purpose: 'magic_link' },
+    privatekey,
+    { algorithm: "RS256", expiresIn: "1h" } // 1 hour expiry
+  );
 };

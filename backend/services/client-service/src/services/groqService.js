@@ -14,11 +14,93 @@ export const sendToGroq = async (fileContent) => {
       messages: [
         {
           role: "system",
-          content: `You are an AI system that **must** return a valid JSON response. 
+          content: `content: You are an AI system that **must** return a valid JSON response.
 
-Strictly adhere to the JSON format provided. **DO NOT** include any additional text, confirmations, explanations, or Markdown formatting such as triple backticks ( \`\`\` ).
+Your job is to analyze logs and output structured information. Strictly adhere to the **JSON format** provided. **DO NOT** include extra text, Markdown formatting, or explanations.
 
-If your response is not valid JSON, retry internally until it is correct. The format must match:
+When classifying the "domain" of each anomaly, use one of the following **predefined domain categories**:
+
+{
+  "Application Layer": [
+    "Frontend",
+    "Backend",
+    "Mobile",
+    "Microservices",
+    "API Gateway / Middleware",
+    "Business Logic",
+    "Third-Party Integrations"
+  ],
+  "Data Layer": [
+    "Database",
+    "ORM / Query Builders",
+    "Data Modeling / Schema Design",
+    "Data Caching"
+  ],
+  "Identity & Access": [
+    "Authentication",
+    "Authorization",
+    "Session Management",
+    "Identity Providers"
+  ],
+  "Infrastructure & Networking": [
+    "DevOps / Infrastructure",
+    "Networking",
+    "Load Balancers / Proxies",
+    "CDN / Edge Services",
+    "Cloud Services"
+  ],
+  "File & Media Handling": [
+    "File System",
+    "File Uploads / Downloads",
+    "Media Processing"
+  ],
+  "Messaging & Communication": [
+    "Email Services",
+    "SMS / Push Notifications",
+    "Message Queues / Pub-Sub"
+  ],
+  "Monitoring & Observability": [
+    "Logging",
+    "Tracing",
+    "Metrics & Alerts"
+  ],
+  "Security": [
+    "Input Validation / Sanitization",
+    "Rate Limiting / Throttling",
+    "Encryption / Secrets Management",
+    "Vulnerability Scanning",
+    "Security Breach Detection"
+  ],
+  "Performance & Optimization": [
+    "Caching",
+    "Lazy Loading / Optimization",
+    "Load Testing / Stress Testing"
+  ],
+  "Platform-Specific": [
+    "OS-Level",
+    "Hardware / Embedded",
+    "Mobile Platform Issues",
+    "Browser-Specific Bugs"
+  ],
+  "Testing & QA": [
+    "Unit Testing",
+    "Integration Testing",
+    "End-to-End Testing",
+    "Test Coverage Tools"
+  ]
+}
+
+
+Use your judgment based on the log entry and anomaly to decide which domain applies. If unsure, choose the **closest matching technical category**.
+
+Do **NOT** create new domain names like "Login Screen", "User Profile", "Array Helper", etc.
+
+Example:  
+- An error in "LoginScreen.js" should be classified as "Frontend"  
+- A "Database connection timeout" belongs to "Database"  
+- A "userSession is not defined" issue in useSession.js is "Session Management"
+
+Here's the required response format:
 
 {
   "analysis_summary": {
@@ -34,7 +116,7 @@ If your response is not valid JSON, retry internally until it is correct. The fo
       "log_entry": "The specific log entry where the anomaly was found",
       "anomaly_type": "Type of anomaly (e.g., Security Breach, Performance Issue)",
       "severity": "Low / Medium / High",
-      "domain": "Relevant domain (e.g., Authentication, Network, Database)",
+      "domain": "Relevant technical domain from the predefined list",
       "suggested_action": "Recommended fix or investigation step",
       "related_errors": [
         {
@@ -51,8 +133,9 @@ If your response is not valid JSON, retry internally until it is correct. The fo
     "info_rate": "Percentage of informational messages in the log"
   },
   "timestamp": "Current timestamp of analysis"
-}
-`
+}`
+
+
         },
         {
           role: "user",

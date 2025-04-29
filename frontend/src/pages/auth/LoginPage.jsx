@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Loader, Lock, Mail } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import Input from "../../components/Input";
 import { useAuthStore } from "../../store/authStore";
 
@@ -14,7 +14,12 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await login(email, password);
+      const response = await login(email, password);
+if (response.success) {
+  Navigate(response.redirectTo || "/");
+}
+
+
     } catch (error) {
       console.error("Login failed:", error);
     }

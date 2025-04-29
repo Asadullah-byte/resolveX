@@ -28,7 +28,8 @@ export const verifyToken = (req, res, next) => {
         .status(400)
         .json({ success: false, message: "Unauthorized -  invalid token" });
     }
-    req.user = { id: decoded.userId };
+    req.user = { id: decoded.userId , role: decoded.role};
+    console.log("🔵 Middleware: User Info:", req.user); 
     next();
   } catch (error) {
     console.error("Error in verifyToken:", error);
@@ -42,4 +43,17 @@ export const verifyToken = (req, res, next) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
   
+};
+
+
+export const verifyEngineer = (req, res, next) => {
+  const token = req.cookies.accessToken;
+  
+  try {
+    req.user = jwt.verify(token,publicKey,{algorithms: ["RS256"]});
+    if (req.user.role !== 'engineer') throw new Error('Access denied');
+    next();
+  } catch (err) {
+    res.status(401).json({ error: err.message });
+  }
 };
