@@ -177,41 +177,40 @@ export const updateAssignmentStatus = async (req, res) => {
   }
 };
 
-// Chat messages
+
 export const sendChatMessage = async (req, res) => {
   try {
     const { assignmentId } = req.params;
-    const { message, attachments = [] } = req.body;
-    const senderId = req.user.id;
+    const { message, senderId, sentAt } = req.body;
 
-    const assignment = await Assignment.findOne({
-      _id: assignmentId,
-      $or: [{ clientId: senderId }, { engineerId: senderId }],
-    });
+    // Find the assignment
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: "Assignment not found" });
+    }
 
-    if (!assignment)
-      return res.status(403).json({ success: false, message: "Unauthorized" });
-
-    assignment.messages.push({
+    // Create the new message object
+    const newMessage = {
       senderId,
       message,
-      attachments,
-      sentAt: new Date(),
-    });
-    assignment.lastUpdated = new Date();
+      sentAt: sentAt || new Date(),
+    };
+
+    // Add to messages array
+    assignment.messages.push(newMessage);
     await assignment.save();
 
-    io.to(assignmentId).emit("chat:message", {
-      senderId,
-      message,
-      sentAt: new Date(),
-    });
+    // Emit the chat:message event to the assignment room
+    if (global.io) {
+      global.io.to(assignmentId).emit("chat:message", newMessage);
+    }
 
-    res.json({ success: true, assignment });
+    res.status(201).json({ success: true, message: newMessage });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 export const getChatMessages = async (req, res) => {
   try {

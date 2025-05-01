@@ -223,13 +223,34 @@ export const login = async (req, res) => {
 
 //Logout from account logic
 export const logout = async (req, res) => {
-  await prisma.user.update({
-    where: { refreshToken: req.cookies.refreshToken },
-    data: { refreshToken: null },
-  });
-  res.clearCookie("token"); //Clears access Token cookie
-  res.clearCookie("refreshToken"); //Clears refresh Token cookie
-  res.status(200).json({ success: true, message: "Logged out successfully" });
+  try {
+    // 1. Find the user by refreshToken
+    const user = await prisma.user.findFirst({
+      where: { refreshToken: req.cookies.refreshToken },
+    });
+
+    if (user) {
+      // 2. Update by id (which is unique)
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken: null },
+      });
+    }
+
+    // 3. Clear cookies with the same options as when set
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      path: "/",
+    };
+    res.clearCookie("token", cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions);
+
+    res.status(200).json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Logout failed" });
+  }
 };
 
 //forgot password logic

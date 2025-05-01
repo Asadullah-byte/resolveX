@@ -46,7 +46,9 @@ global.io = io;
 // 🧠 Setup socket listeners
 io.on("connection", (socket) => {
   console.log("🔌 Client connected:", socket.id);
-
+  socket.on("join", (room) => {
+    socket.join(room);
+  });
   socket.on("join", (userId) => {
     socket.join(userId); // Join personal room
     console.log(`User ${userId} joined their socket room`);
