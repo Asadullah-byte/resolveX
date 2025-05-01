@@ -23,6 +23,7 @@ const useChatSocket = (assignmentId, onMessage) => {
       onMessage(data);
       toast.success("New chat message");
     });
+    
 
     return () => {
       socket.off("chat:message");

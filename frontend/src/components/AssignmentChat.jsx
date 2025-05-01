@@ -1,4 +1,3 @@
-// Enhanced AssignmentChat.jsx with loop-safe call notifications and sounds
 import { useEffect, useState, useRef } from "react";
 import {
   Box,
@@ -10,12 +9,16 @@ import {
   Paper,
   Divider,
   Modal,
+  IconButton,
+  Tooltip
 } from "@mui/material";
+import { Send, VideoCall } from "@mui/icons-material";
 import useChatSocket from "../hooks/useChatSocket";
 import useClientStore from "../store/clientStore";
 import { useAuthStore } from "../store/authStore";
 import { formatDistanceToNow } from "date-fns";
 import useVideoCall from "../hooks/useVideoCall";
+import { motion } from "framer-motion";
 
 const modalStyles = {
   position: "absolute",
@@ -47,6 +50,12 @@ const AssignmentChat = ({ assignmentId }) => {
   const endSoundRef = useRef(null);
 
   const systemMessageSent = useRef({ start: false, end: false });
+  const callEndedOnce = useRef(false);
+
+  // Real-time chat socket: update messages on new message
+  useChatSocket(assignmentId, (msg) => {
+    setMessages((prev) => [...prev, msg]);
+  });
 
   const addSystemMessage = async (msg, type) => {
     if (systemMessageSent.current[type]) return;
@@ -54,9 +63,10 @@ const AssignmentChat = ({ assignmentId }) => {
     const newMsg = {
       message: msg,
       senderId: "system",
+      sentAt: new Date().toISOString(),
     };
-    await sendChatMessage(assignmentId, newMsg);
     setMessages((prev) => [...prev, newMsg]);
+    await sendChatMessage(assignmentId, newMsg);
   };
 
   const {
@@ -71,13 +81,22 @@ const AssignmentChat = ({ assignmentId }) => {
     onCallStarted: () => {
       setCallActive(true);
       callingSoundRef.current?.pause();
+      callEndedOnce.current = false;
       addSystemMessage("📞 Call started", "start");
     },
     onCallEnded: () => {
+      if (callEndedOnce.current) return;
+      callEndedOnce.current = true;
       setCallActive(false);
       setShowCallButton(true);
       setIncomingCall(false);
-      endSoundRef.current?.play();
+      if (endSoundRef.current) {
+        endSoundRef.current.currentTime = 0;
+        endSoundRef.current.play();
+        endSoundRef.current.onended = () => {
+          endSoundRef.current.currentTime = 0;
+        };
+      }
       addSystemMessage("📴 Call ended", "end");
     },
     onIncomingCall: () => {
@@ -93,6 +112,9 @@ const AssignmentChat = ({ assignmentId }) => {
     };
     load();
     listenForCall();
+    // Reset system message flags and call end guard on assignment change
+    systemMessageSent.current = { start: false, end: false };
+    callEndedOnce.current = false;
   }, [assignmentId]);
 
   useEffect(() => {
@@ -104,7 +126,9 @@ const AssignmentChat = ({ assignmentId }) => {
     const newMsg = {
       message: text,
       senderId: user.id,
+      sentAt: new Date().toISOString(),
     };
+    setMessages((prev) => [...prev, newMsg]); // Optimistically update UI
     await sendChatMessage(assignmentId, newMsg);
     setText("");
   };
@@ -127,21 +151,23 @@ const AssignmentChat = ({ assignmentId }) => {
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
         <Typography variant="h6">Conversation</Typography>
         {showCallButton && (
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={async () => {
-              setCallActive(true);
-              setShowCallButton(false);
-              systemMessageSent.current = { start: false, end: false }; // reset flags
-              callingSoundRef.current?.play().catch(err => console.warn("Calling sound autoplay blocked", err));
-              setTimeout(() => {
-                startCaller();
-              }, 300);
-            }}
-          >
-            Start Video Call
-          </Button>
+          <Tooltip title="Start video call">
+            <IconButton
+              color="secondary"
+              onClick={async () => {
+                setCallActive(true);
+                setShowCallButton(false);
+                systemMessageSent.current = { start: false, end: false };
+                callEndedOnce.current = false;
+                callingSoundRef.current?.play().catch(err => console.warn("Calling sound autoplay blocked", err));
+                setTimeout(() => {
+                  startCaller();
+                }, 300);
+              }}
+            >
+              <VideoCall />
+            </IconButton>
+          </Tooltip>
         )}
       </Stack>
 
@@ -155,7 +181,8 @@ const AssignmentChat = ({ assignmentId }) => {
                 acceptCaller();
                 setIncomingCall(false);
                 setCallActive(true);
-                systemMessageSent.current = { start: false, end: false }; // reset flags
+                systemMessageSent.current = { start: false, end: false };
+                callEndedOnce.current = false;
               }}
               variant="contained"
               color="success"
@@ -211,48 +238,54 @@ const AssignmentChat = ({ assignmentId }) => {
         }}
       >
         {messages.map((msg, i) => (
-          <Stack
+          <motion.div
             key={i}
-            direction="row"
-            spacing={2}
-            sx={{
-              mb: 2,
-              alignItems: "flex-start",
-              flexDirection: msg.senderId === user.id ? "row-reverse" : "row",
-            }}
+            initial={{ opacity: 0, translateY: 10 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ duration: 0.2 }}
           >
-            <Avatar>
-              {msg.senderId === user.id ? (user.fname?.[0] || "U") : msg.senderId[0]}
-            </Avatar>
-            <Box>
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  fontWeight: 600,
-                  color: msg.senderId === user.id ? "#4f46e5" : "inherit",
-                }}
-              >
-                {msg.senderId === user.id ? "You" : msg.senderId}
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  background: "#fff",
-                  p: 1.2,
-                  borderRadius: 2,
-                  maxWidth: "400px",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-                }}
-              >
-                {msg.message}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {formatDistanceToNow(new Date(msg.sentAt || Date.now()), {
-                  addSuffix: true,
-                })}
-              </Typography>
-            </Box>
-          </Stack>
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{
+                mb: 2,
+                alignItems: "flex-start",
+                flexDirection: msg.senderId === user.id ? "row-reverse" : "row",
+              }}
+            >
+              <Avatar>
+                {msg.senderId === user.id ? (user.fname?.[0] || "U") : msg.senderId[0]}
+              </Avatar>
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 600,
+                    color: msg.senderId === user.id ? "#4f46e5" : "inherit",
+                  }}
+                >
+                  {msg.senderId === user.id ? "You" : msg.senderId}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    background: "#fff",
+                    p: 1.2,
+                    borderRadius: 2,
+                    maxWidth: "400px",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                  }}
+                >
+                  {msg.message}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {formatDistanceToNow(new Date(msg.sentAt || Date.now()), {
+                    addSuffix: true,
+                  })}
+                </Typography>
+              </Box>
+            </Stack>
+          </motion.div>
         ))}
         <div ref={messagesEndRef} />
       </Paper>
@@ -269,7 +302,7 @@ const AssignmentChat = ({ assignmentId }) => {
 
       <Divider sx={{ mb: 2 }} />
 
-      <Stack direction="row" spacing={1}>
+      <Stack direction="row" spacing={1} alignItems="center">
         <TextField
           fullWidth
           size="small"
@@ -279,10 +312,20 @@ const AssignmentChat = ({ assignmentId }) => {
             handleTyping();
           }}
           placeholder="Write a message..."
+          inputProps={{ maxLength: 300 }}
         />
-        <Button onClick={handleSend} variant="contained">
-          Send
-        </Button>
+        <Tooltip title="Send">
+          <span>
+            <IconButton
+              onClick={handleSend}
+              color="primary"
+              disabled={!text.trim()}
+              sx={{ backgroundColor: text.trim() ? "#e0e7ff" : "transparent" }}
+            >
+              <Send />
+            </IconButton>
+          </span>
+        </Tooltip>
       </Stack>
     </Box>
   );

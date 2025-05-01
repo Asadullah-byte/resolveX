@@ -1,6 +1,6 @@
 import { useAuthStore } from "../../store/authStore.js";
 import AssignmentDetailPage from "./AssignmentDetailPage.jsx";
-import EngineerAssignmentPage from "../engineer/EngineerAssignmentPage.jsx";
+import EngineerAssignmentPage from "../engineer/EngineerAssignmentsPage.jsx";
 
 const AssignmentRouter = () => {
   const { user } = useAuthStore();

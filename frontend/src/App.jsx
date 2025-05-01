@@ -27,14 +27,15 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     allowedRoles,
     isCheckingAuth
   });
-
+  
+  
   if (isCheckingAuth) {
     return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
     console.log("Trying to refresh token...");
-    refreshToken();
+    // refreshToken();
     return <Navigate to="/login" replace />;
   }
 
@@ -43,14 +44,16 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   // Check if roles are specified and user has permission
-  if (allowedRoles && !allowedRoles.includes(user?.role)) {
-    console.log('Role check failed:', {
-      userRole: user?.role,
-      allowedRoles,
-      includes: allowedRoles.includes(user?.role)
-    });
+  if (
+    allowedRoles &&
+    !allowedRoles.map(r => r.toLowerCase()).includes(user?.role?.toLowerCase())
+  ) {
+    if (user?.role?.toLowerCase() === "engineer") {
+      return <Navigate to="/dashboard" replace />;
+    }
     return <Navigate to="/unauthorized" replace />;
   }
+
 
   // Handle function children for conditional rendering
   if (typeof children === 'function') {
@@ -65,9 +68,16 @@ const RedirectAuthenticatedUser = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore();
 
   if (isAuthenticated && user.isVerified) {
-    return <Navigate to="/upload" replace />;
+    // Redirect based on user role
+    if (user.role?.toLowerCase() === "engineer") {
+      return <Navigate to="/dashboard" replace />;
+    }
+    if (user.role?.toLowerCase() === "client") {
+      return <Navigate to="/upload" replace />;
+    }
+    // Optionally, handle unknown roles
+    return <Navigate to="/" replace />;
   }
-
   return children;
 };
 
@@ -81,7 +91,7 @@ function App() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-neutral-100 to-neutral-200 flex items-center justify-center relative overflow-hidden pt-18">
+      <div className="min-h-screen min-w-[360px] bg-gradient-to-br from-gray-50 via-neutral-100 to-neutral-200 flex items-center justify-center relative overflow-hidden pt-18">
         <Routes>
           <Route
             path="/"

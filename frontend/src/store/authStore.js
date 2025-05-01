@@ -24,6 +24,7 @@ export const useAuthStore = create(
       isLoading: false,
       isCheckingAuth: true,
       message: null,
+      refreshAttempted: false,
 
       setUser: (userData) => {
         console.log(" Setting user:", userData);
@@ -118,55 +119,73 @@ export const useAuthStore = create(
         set({ isCheckingAuth: true, error: null });
         try {
           const response = await axios.get(`${API_URL}/check-auth`);
-          console.log("Auth Check Response:", response.data);
-          if (response.data.user.isVerified && response.data.user) {
+          if (response.data.user && response.data.user.isVerified) {
             set({
               user: response.data.user,
               role: response.data.user.role,
               userId: response.data.user.id,
               isAuthenticated: true,
-              // isCheckingAuth: false,
+              refreshAttempted: false,
             });
-
-            console.log(" Zustand userId after checkAuth:", get().userId);
           } else {
             set({ isAuthenticated: false });
           }
         } catch (error) {
-          console.log("Check Auth Failed:", error.response?.data || error);
-          set({
-            // isCheckingAuth: false,
-            isAuthenticated: false,
-          });
-          await get().refreshToken();
+          // Only try to refresh token if not already attempted
+          if (!get().refreshAttempted) {
+            set({ refreshAttempted: true });
+            try {
+              await get().refreshToken();
+              // Wait a moment for the cookie to be set
+              await new Promise(res => setTimeout(res, 200));
+              // After refreshing, try checkAuth again
+              const response = await axios.get(`${API_URL}/check-auth`);
+              if (response.data.user && response.data.user.isVerified) {
+                set({
+                  user: response.data.user,
+                  role: response.data.user.role,
+                  userId: response.data.user.id,
+                  isAuthenticated: true,
+                });
+              } else {
+                set({ isAuthenticated: false });
+              }
+            } catch (refreshError) {
+              set({ isAuthenticated: false });
+            }
+          } else {
+            set({ isAuthenticated: false });
+          }
         } finally {
-          set({ isCheckingAuth: false }); // Ensure loading state is updated
+          set({ isCheckingAuth: false });
         }
       },
       refreshToken: async () => {
         try {
           const response = await axios.post(`${API_URL}/refresh-token`);
-          console.log("Token Refreshed:", response.data);
-          set({ isAuthenticated: true });
+          // No need to set isAuthenticated here, wait for checkAuth to confirm
+          set({ refreshAttempted: false });
         } catch (error) {
-          console.log("Token Refresh Failed:", error.response?.data || error);
-          set({ isAuthenticated: false, user: null });
+          set({ isAuthenticated: false, user: null, refreshAttempted: true });
         }
       },
       logout: async () => {
         try {
           await axios.post(`${API_URL}/logout`);
+        } catch (error) {
+          // ... existing code ...
+        } finally {
           set({
             user: null,
             role: null,
             isAuthenticated: false,
             error: null,
             isLoading: false,
+            refreshAttempted: false, // reset on logout
           });
-        } catch (error) {
-          console.log("Logout Error:", error.response?.data || error);
         }
       },
+      
       forgotPassword: async (email) => {
         set({ isLoading: true, error: null });
         try {
