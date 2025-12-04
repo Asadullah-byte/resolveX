@@ -1,0 +1,129 @@
+  generator client {
+    provider = "prisma-client-js"
+  }
+
+  datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+  }
+
+  enum Role {
+    Client
+    Engineer
+  }
+
+  enum Provider {
+    LOCAL
+    GOOGLE
+    GITHUB
+    LINKEDIN
+  }
+
+  enum Gender {
+    MALE
+    FEMALE
+    OTHER
+  }
+
+  enum DegreeType {
+    BACHELORS
+    MASTERS
+    PHD
+    DIPLOMA
+    CERTIFICATION
+  }
+
+  model User {
+    id                       String    @id @default(uuid())
+    fname                    String
+    lname                    String?
+    email                    String    @unique
+    password                 String?   @default("")
+    profilePic               String?
+    lastLogin                DateTime? @default(now())
+    isVerified               Boolean   @default(false)
+    refreshToken             String?
+    resetPasswordToken       String?
+    resetPasswordExpires     DateTime?
+    verificationToken        String?
+    verificationTokenExpires DateTime?
+    providerId               String?
+    provider                 Provider  @default(LOCAL)
+    role                     Role      @default(Client)
+    createdAt                DateTime  @default(now())
+    updatedAt                DateTime  @updatedAt
+
+    client   Client?
+    engineer Engineer?
+  }
+
+  model Client {
+    id          String   @id @default(uuid())
+    userId      String   @unique
+    user        User     @relation(fields: [userId], references: [id])
+    companyName String?
+    address     String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+  }
+
+  model Engineer {
+    id        String    @id @default(uuid())
+    userId    String    @unique
+    user      User      @relation(fields: [userId], references: [id])
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    // Basic Info
+    gender    Gender?
+    dob       DateTime?
+    country   String?
+    state     String?
+    city      String?
+    profilePic     String?
+    resume         String?
+
+    // Contact
+    phoneNo String?
+    email   String? @unique
+
+    // Relations
+
+    education Education[]
+    career    Career?
+      @@index([userId])
+  }
+
+  model Education {
+    id         String      @id @default(uuid())
+    engineerId String
+    engineer   Engineer    @relation(fields: [engineerId], references: [id])
+    institute  String?
+    type       DegreeType?
+    major      String?
+    degree     String?
+    marks      Float?
+    grade      String?
+    startYear  Int?
+    endYear    Int?
+      @@index([engineerId])
+  @@index([major])
+  @@index([degree])
+
+  }
+
+  model Career {
+    id             String   @id @default(uuid())
+    engineerId     String   @unique
+    engineer       Engineer @relation(fields: [engineerId], references: [id])
+    field          String?
+    specialization String?
+    skills         String[]
+    experience     Int?
+    previousRecord String?
+    bio            String?
+    intro          String?
+    socialAccounts Json? // Store social links in JSON format (e.g., { "linkedin": "link", "github": "link" })
+   @@index([engineerId])
+  @@index([specialization])
+  @@index([skills], type: Gin)
+  }
